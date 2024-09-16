@@ -1,0 +1,280 @@
+---
+title: "AR-MA manual"
+author: "Muhammad Abshor Dzulhij Rizki_G1401221038"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+
+** Membuat data MA(2) dengan Arima.sim**
+```{r}
+set.seed(1234)  
+n <- 300  
+theta <- c(0.4, 0.6) 
+data_arima_sim <- arima.sim(model = list(ma = theta), n = n)
+
+```
+
+** Membuat data MA(2) dengan manual**
+```{r}
+set.seed(1234)
+n <- 300
+theta1 <- 0.4
+theta2 <- 0.6
+epsilon <- rnorm(n)  # Generate white noise (random errors)
+Y_manual <- numeric(n)  # Inisialisasi vektor kosong untuk data MA(2)
+```
+
+
+```{r}
+# Loop untuk membangkitkan data MA(2) secara manual
+for (t in 3:n) {
+  Y_manual[t] <- epsilon[t] + theta1 * epsilon[t-1] + theta2 * epsilon[t-2]
+}
+
+```
+
+membuat plot time series,ACF,PACF dan EACF
+```{r}
+# Plot time series
+plot.ts(data_arima_sim, main = "Time Series of MA(2)", ylab = "Yt", col = "blue")
+
+```
+
+```{r}
+# Plot ACF
+acf(data_arima_sim, main = "ACF of MA(2)")
+
+```
+
+```{r}
+# Plot PACF
+pacf(data_arima_sim, main = "PACF of MA(2)")
+
+```
+
+```{r}
+library(TSA)
+
+# Plot EACF
+eacf(data_arima_sim)
+
+```
+
+```{r}
+library(tseries)
+# Uji ADF (Augmented Dickey-Fuller) untuk stasioneritas
+adf.test(data_arima_sim)
+
+```
+```{r}
+# Scatterplot Yt dengan Yt-1
+plot(data_arima_sim[-1], data_arima_sim[-length(data_arima_sim)], main = "Scatterplot Yt vs Yt-1", xlab = "Yt-1", ylab = "Yt")
+
+# Scatterplot Yt dengan Yt-2
+plot(data_arima_sim[-c(1, 2)], data_arima_sim[-c((length(data_arima_sim)-1), length(data_arima_sim))], main = "Scatterplot Yt vs Yt-2", xlab = "Yt-2", ylab = "Yt")
+
+# Scatterplot Yt dengan Yt-3
+plot(data_arima_sim[-c(1:3)], data_arima_sim[-c((length(data_arima_sim)-2):length(data_arima_sim))], main = "Scatterplot Yt vs Yt-3", xlab = "Yt-3", ylab = "Yt")
+
+```
+```{r}
+# Hitung autokorelasi empiris dari data bangkitan
+acf_values <- acf(data_arima_sim, plot = FALSE)
+acf_empirical <- acf_values$acf
+print(acf_empirical)
+
+```
+```{r}
+# Hitung autokorelasi teoritis MA(2)
+theta1 <- 0.4
+theta2 <- 0.6
+denominator <- 1 + theta1^2 + theta2^2
+
+acf_theoretical <- numeric(3)
+acf_theoretical[1] <- -theta1 / denominator  # Autokorelasi lag-1
+acf_theoretical[2] <- -theta2 / denominator  # Autokorelasi lag-2
+acf_theoretical[3] <- 0  # Autokorelasi lag-3 ke atas untuk MA(2) adalah 0
+
+print(acf_theoretical)
+
+```
+
+Kesimpulan:
+Dengan menggunakan plot time series, ACF, PACF, dan EACF, serta hasil dari ADF test, kita dapat melihat apakah data tersebut stasioner.
+
+Scatterplot antara Yt dan lag-nya membantu kita melihat hubungan antara nilai Y pada waktu yang berbeda.
+
+Autokorelasi bisa dihitung baik secara empiris dari data bangkitan maupun secara teoritis dari parameter MA(2).
+
+
+#membuat AR (2) dengan fungsi arima.sim#
+```{r}
+set.seed(1234)  # Agar hasil konsisten
+n2 <- 300  # Jumlah data
+phi <- c(0.5, 0.2)  # Nilai parameter AR(2)
+data_arima_sim2 <- arima.sim(model = list(ar = phi), n = n2)
+
+```
+
+#membuat AR (2) dengan manual#
+```{r}
+set.seed(123)
+n2_manual <- 300
+phi1 <- 0.5
+phi2 <- 0.2
+epsilon2 <- rnorm(n2_manual)  # White noise (error acak)
+Y_manual2 <- numeric(n2_manual)  # Inisialisasi vektor kosong untuk data AR(2)
+
+# Loop untuk membangkitkan data AR(2) secara manual
+for (t in 3:n2_manual) {
+  Y_manual2[t] <- phi1 * Y_manual2[t-1] + phi2 * Y_manual2[t-2] + epsilon[t]
+}
+```
+
+```{r}
+# Plot time series
+plot.ts(data_arima_sim2, main = "Time Series of AR(2)", ylab = "Yt", col = "blue")
+```
+
+```{r}
+# Plot ACF
+acf(data_arima_sim2, main = "ACF of AR(2)")
+
+```
+```{r}
+# Plot PACF
+pacf(data_arima_sim2, main = "PACF of AR(2)")
+
+```
+
+```{r}
+# Plot EACF
+eacf(data_arima_sim2)
+
+```
+
+```{r}
+# Uji ADF (Augmented Dickey-Fuller) untuk stasioneritas
+adf.test(data_arima_sim2)
+
+```
+
+```{r}
+# Scatterplot Yt dengan Yt-1
+plot(data_arima_sim2[-1], data_arima_sim2[-length(data_arima_sim2)], main = "Scatterplot Yt vs Yt-1", xlab = "Yt-1", ylab = "Yt")
+
+# Scatterplot Yt dengan Yt-2
+plot(data_arima_sim2[-c(1, 2)], data_arima_sim2[-c((length(data_arima_sim2)-1), length(data_arima_sim2))], main = "Scatterplot Yt vs Yt-2", xlab = "Yt-2", ylab = "Yt")
+
+# Scatterplot Yt dengan Yt-3
+plot(data_arima_sim2[-c(1:3)], data_arima_sim2[-c((length(data_arima_sim2)-2):length(data_arima_sim2))], main = "Scatterplot Yt vs Yt-3", xlab = "Yt-3", ylab = "Yt")
+
+```
+
+```{r}
+# Hitung autokorelasi empiris dari data bangkitan
+acf_values2 <- acf(data_arima_sim2, plot = FALSE)
+acf_empirical2 <- acf_values2$acf
+print(acf_empirical2)
+
+```
+
+```{r}
+# Hitung autokorelasi teoritis AR(2)
+phi1 <- 0.5
+phi2 <- 0.2
+
+rho1<-phi1/(1-phi2)
+rho2<-phi2 + (phi1*rho1)
+rho3<-phi1*rho2
+
+acf_theoretical2 <- c(rho1,rho2,rho3)
+print(acf_theoretical2)
+
+```
+
+
+
+```{r}
+#membuat data arma(2,2) dengan arima.sim
+set.seed(1234)  
+n3 <- 300
+phi3 <- c(0.5, 0.2)  # Parameter AR(2)
+theta3 <- c(0.4, 0.6)  # Parameter MA(2)
+
+data_arima_sim3 <- arima.sim(model = list(ar = phi3, ma = theta3), n = n3)
+
+```
+
+```{r}
+#membuat data arma(2,2) dengan manual
+set.seed(1234)
+n3_manual <- 300
+phi1_arm <- 0.5
+phi2_arm<- 0.2
+theta1_arm <- 0.4
+theta2_arm <- 0.6
+epsilon_arm <- rnorm(n3_manual)  # White noise (error acak)
+Y_manual_arm <- numeric(n3_manual)  # Inisialisasi vektor kosong untuk data ARMA(2,2)
+
+# Loop untuk membangkitkan data ARMA(2,2) secara manual
+for (t in 3:n3_manual) {
+  Y_manual_arm[t] <- phi1_arm * Y_manual_arm[t-1] + phi2_arm * Y_manual_arm[t-2] + epsilon_arm[t] - theta1_arm * epsilon_arm[t-1] - theta2_arm * epsilon_arm[t-2]
+}
+
+```
+
+```{r}
+# Plot time series
+plot.ts(data_arima_sim3, main = "Time Series of ARMA(2,2)", ylab = "Yt", col = "blue")
+
+```
+
+```{r}
+# Plot ACF
+acf(data_arima_sim3, main = "ACF of ARMA(2,2)")
+
+```
+
+```{r}
+# Plot PACF
+
+pacf(data_arima_sim3, main = "PACF of ARMA(2,2)")
+
+```
+
+```{r}
+# Plot EACF
+eacf(data_arima_sim3)
+
+```
+
+```{r}
+# Uji ADF (Augmented Dickey-Fuller) untuk stasioneritas
+adf.test(data_arima_sim3)
+
+```
+
+```{r}
+
+# Scatterplot Yt dengan Yt-1
+plot(data_arima_sim3[-1], data_arima_sim3[-length(data_arima_sim3)], main = "Scatterplot Yt vs Yt-1", xlab = "Yt-1", ylab = "Yt")
+
+# Scatterplot Yt dengan Yt-2
+plot(data_arima_sim3[-c(1, 2)], data_arima_sim3[-c((length(data_arima_sim3)-1), length(data_arima_sim3))], main = "Scatterplot Yt vs Yt-2", xlab = "Yt-2", ylab = "Yt")
+
+# Scatterplot Yt dengan Yt-3
+plot(data_arima_sim3[-c(1:3)], data_arima_sim3[-c((length(data_arima_sim3)-2):length(data_arima_sim3))], main = "Scatterplot Yt vs Yt-3", xlab = "Yt-3", ylab = "Yt")
+
+```
+
+```{r}
+# Hitung autokorelasi empiris dari data bangkitan
+acf_values3 <- acf(data_arima_sim3, plot = FALSE)
+acf_values3
+acf_empirical3 <- acf_values3$acf
+acf_empirical3
+
+```
+
