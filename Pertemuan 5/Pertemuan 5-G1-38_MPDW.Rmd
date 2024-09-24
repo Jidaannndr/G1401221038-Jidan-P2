@@ -89,19 +89,19 @@ bc$x[bc$y > max(bc$y) - 1/2 * qchisq(.95,1)]
 
 ```
 
-Gambar di atas menunjukkan nilai *rounded value* ($\lambda$) optimum sebesar **0.284** dan pada selang kepercayaan 95% nilai memiliki batas bawah **0.224** dan batas atas **0.351**. Selang tersebut memuat nilai satu sehingga dapat dikatakan bahwa data curah hujan bogor stasioner dalam ragam.
+Gambar di atas menunjukkan nilai *rounded value* ($\lambda$) optimum sebesar **0.284** dan pada selang kepercayaan 95% nilai memiliki batas bawah **0.224** dan batas atas **0.351**. Selang tersebut tidak memuat nilai satu sehingga dapat dikatakan bahwa data curah hujan bogor tidak stasioner dalam ragam.
 
 ### SUMMARY Data Keseluruhan
 pada data keseluruhan $121$ periode dapat di identifikasi stasionernya dengan melakukan uji ACF dengan hasil Tail off lalu dilakukan uji stasioner bagi rataan Menggunakan uji ADF.hasil p-value $0.03859$ yang lebih kecil dari taraf nyata 5% sehingga tolak $H_0$ dan menandakan bahwa data stasioner dalam rataan. lalu dilakukan uji stasioner bagi ragam Menggunakan Box-Cox dengan hasil lambda $0.284$ dan pada selang kepercayaan 95% nilai memiliki batas bawah $0.224$ dan batas atas $0.351$.
 
-Dari seluruh uji dapat di identifikasi bahwa data keseluruhan 121 periode termasuk dalam model yang stasioner
+Dari seluruh uji dapat di identifikasi bahwa data keseluruhan 121 periode termasuk dalam model yang stasioner pada rata-ratanya akan tetapi tidak stasioner terhadap ragamnya
 
-### Partisi Data (Data Training dan Data Testing)
+### Partisi Data (Data Training dan Data Testing) dibagi data training 1-50 data uji 51-100
 
 #### Bagian 1 (Data Training)
 
 ```{r}
-data_training <- data1[1:96,]
+data_training <- data1[1:50,]
 data_training.ts <- ts(data_training$`Akumulasi Hujan`)
 
 mean(data_training.ts)
@@ -131,12 +131,12 @@ $H_0$ : Data tidak stasioner dalam rataan
 
 $H_1$ : Data stasioner dalam rataan
 
-Berdasarkan uji ADF tersebut, didapat *p-value* sebesar 0.08921 yang lebih besar dari taraf nyata 5% sehingga tak tolak $H_0$ dan menandakan bahwa data tidak stasioner dalam rataan.
+Berdasarkan uji ADF tersebut, didapat *p-value* sebesar 0.3816 yang lebih besar dari taraf nyata 5% sehingga tak tolak $H_0$ dan menandakan bahwa data tidak stasioner dalam rataan.
 
 #### Plot Boxcox
 
 ```{r}
-index_2 <- seq(1:96)
+index_2 <- seq(1:50)
 bc = boxcox(data_training.ts~index_2, lambda = seq(-1,2,by=0.001))
 #Nilai Rounded Lambda
 lambda <- bc$x[which.max(bc$y)]
@@ -145,18 +145,18 @@ lambda
 bc$x[bc$y > max(bc$y) - 1/2 * qchisq(.95,1)]
 ```
 
-Gambar di atas menunjukkan nilai *rounded value* ($\lambda$) optimum sebesar **0.29** dan pada selang kepercayaan 95% nilai memiliki batas bawah **0.223 ** dan batas atas **0.366**. Selang tersebut memuat nilai satu sehingga dapat dikatakan bahwa data bangkitan stasioner dalam ragam.
+Gambar di atas menunjukkan nilai *rounded value* ($\lambda$) optimum sebesar **0.302** dan pada selang kepercayaan 95% nilai memiliki batas bawah **0.212  ** dan batas atas **0.408**. Selang tersebut tidak memuat nilai satu sehingga dapat dikatakan bahwa data curah hujan bogor tidak stasioner dalam ragam.
 
 
 ### SUMMARY Data Training
-Pada data ini terdapat 96 periode, dapat di identifikasi stasionernya dengan melakukan uji ACF dengan hasil Tail off lalu dilakukan uji stasioner bagi rataan Menggunakan uji ADF.hasil p-value $0.08921$ yang lebih besar dari taraf nyata 5% sehingga tak tolak $H_0$ dan menandakan bahwa data tidak stasioner dalam rataan. lalu dilakukan uji stasioner bagi ragam Menggunakan Box-Cox dengan hasil lambda $0.29$ dan pada selang kepercayaan 95% nilai memiliki batas bawah $0.223$ dan batas atas $0.366$.
+Pada data ini terdapat 50 periode, dapat di identifikasi stasionernya dengan melakukan uji ACF dengan hasil Tail off lalu dilakukan uji stasioner bagi rataan Menggunakan uji ADF.hasil p-value $0.08921$ yang lebih besar dari taraf nyata 5% sehingga tak tolak $H_0$ dan menandakan bahwa data tidak stasioner dalam rataan. lalu dilakukan uji stasioner bagi ragam Menggunakan Box-Cox dengan hasil lambda $0.302$ dan pada selang kepercayaan 95% nilai memiliki batas bawah $0.212$ dan batas atas $0.408$.
 
-Dari seluruh uji dapat di identifikasi bahwa data training 96 periode termasuk dalam model yang stasioner akan tetapi tidak stasioner terhadap rataannya
+Dari seluruh uji dapat di identifikasi bahwa data training 50 periode termasuk dalam model yang stasioner (dilihat dari ACF) akan tetapi tidak stasioner terhadap rataannya dan tidak stasioner pada ragam
 
 #### Bagian 2 (Data Uji)
 
 ```{r}
-data_uji <- data1[97:121,]
+data_uji <- data1[51:100,]
 data_uji.ts <- ts(data_uji$`Akumulasi Hujan`)
 
 mean(data_uji.ts)
@@ -187,12 +187,12 @@ $H_0$ : Data tidak stasioner dalam rataan
 
 $H_1$ : Data stasioner dalam rataan
 
-Berdasarkan uji ADF tersebut, didapat *p-value* sebesar 0.32 yang lebih besar dari taraf nyata 5% sehingga tidak tolak $H_0$ dan menandakan bahwa data tidak stasioner dalam rataan. Hal ini sesuai dengan hasil eksplorasi menggunakan plot time series dan plot ACF.
+Berdasarkan uji ADF tersebut, didapat *p-value* sebesar 0.155 yang lebih besar dari taraf nyata 5% sehingga tidak tolak $H_0$ dan menandakan bahwa data tidak stasioner dalam rataan. Hal ini sesuai dengan hasil eksplorasi menggunakan plot time series dan plot ACF.
 
 #### Plot Boxcox
 
 ```{r}
-index3 <- seq(97:121)
+index3 <- seq(51:100)
 bc = boxcox(data_uji.ts~index3, lambda = seq(-1,2,by=0.001))
 #Nilai Rounded Lambda
 lambda <- bc$x[which.max(bc$y)]
@@ -201,10 +201,10 @@ lambda
 bc$x[bc$y > max(bc$y) - 1/2 * qchisq(.95,1)]
 ```
 
-Gambar di atas menunjukkan nilai *rounded value* ($\lambda$) optimum sebesar **0.294** dan pada selang kepercayaan 95% nilai memiliki batas bawah **0.165** dan batas atas **0.457**. Selang tersebut memuat nilai satu sehingga dapat dikatakan bahwa data curah hujan bogor stasioner dalam ragam.
+Gambar di atas menunjukkan nilai *rounded value* ($\lambda$) optimum sebesar **0.298** dan pada selang kepercayaan 95% nilai memiliki batas bawah **0.200 ** dan batas atas **0.416**. Selang tersebut tidak memuat nilai satu sehingga dapat dikatakan bahwa data curah hujan bogor tidak stasioner dalam ragam.
 
 
 ### SUMMARY Data Uji
-Pada data ini terdapat 24 periode, dapat di identifikasi stasionernya dengan melakukan uji ACF dengan hasil cut off lalu dilakukan uji stasioner bagi rataan Menggunakan uji ADF.hasil p-value $0.32$ yang lebih besar dari taraf nyata 5% sehingga tidak tolak $H_0$ dan menandakan bahwa data tidak stasioner dalam rataan. lalu dilakukan uji stasioner bagi ragam Menggunakan Box-Cox dengan hasil lambda $0.294$ dan pada selang kepercayaan 95% nilai memiliki batas bawah $0.165$ dan batas atas $0.457$.'
+Pada data ini terdapat 50 periode, dapat di identifikasi stasionernya dengan melakukan uji ACF dengan hasil cut off lalu dilakukan uji stasioner bagi rataan Menggunakan uji ADF.hasil p-value $0.32$ yang lebih besar dari taraf nyata 5% sehingga tidak tolak $H_0$ dan menandakan bahwa data tidak stasioner dalam rataan. lalu dilakukan uji stasioner bagi ragam Menggunakan Box-Cox dengan hasil lambda $0.298$ dan pada selang kepercayaan 95% nilai memiliki batas bawah $0.200$ dan batas atas $0.416$.'
 
-Dari seluruh uji dapat di identifikasi bahwa data uji 24 periode termasuk dalam model yang stasioner namun tidak stasioner terhadap rataannya
+Dari seluruh uji dapat di identifikasi bahwa data uji 50 periode termasuk dalam model yang stasioner (dilihat dari Plot ACF) namun tidak stasioner terhadap rataannya dan juga ragamnya
