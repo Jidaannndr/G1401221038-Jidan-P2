@@ -1,0 +1,334 @@
+---
+title: "MPDW_Pertemuan 7"
+author: "Muhammad Abshor Dzulhij Rizki_G1401221038"
+date: "`r Sys.Date()`"
+output: html_document
+---
+```{r message=FALSE, warning=FALSE}
+library(ggplot2)
+library(tsibble)
+library(tseries)
+library(MASS)
+library(forecast)
+library(TSA)
+library(TTR)
+library(aTSA)
+library(graphics)
+```
+
+### Impor Data*
+```{r}
+library(readxl)
+data<- read_excel("C:\\Users\\Jidan statistik\\Downloads\\Data Hujan Bogor 2023-Now.xlsx")
+
+#memasukan data hanya baris 363 hingga 483 aja
+data1<-data[363:483,]
+```
+
+
+```{r}
+head(data1)
+str(data1)
+
+```
+### Eksplorasi Data*
+```{r}
+data1.ts<-ts(data1$`Akumulasi Hujan`)
+summary(data1.ts)
+```
+### Plot *Time Series*
+```{r}
+ts.plot(data1.ts, xlab="Time Periode ", ylab="Akumulasi", 
+        main = "Time Series Plot")
+```
+
+```{r}
+lattice :: densityplot(as.vector (data1.ts))
+
+```
+```{r}
+mean(density(data1.ts)$x)
+```
+
+
+Plot deret waktu di atas menunjukkan bahwa data stasioner dalam rataan, ditandai dengan data yang menyebar di sekitar nilai tengahnya (170.7985) dan stasioner dalam ragam, ditandai dengan lebar pita yang cenderung sama.
+
+### Plot ACF
+
+```{r}
+acf(data1.ts)
+```
+
+Berdasarkan plot ACF, terlihat bahwa plot ACF pada data tersebut cenderung *tails off* dan membentuk gelombang sinus.
+
+### Uji ADF
+
+```{r}
+tseries::adf.test(data1.ts)
+```
+
+$H_0$ : Data tidak stasioner dalam rataan
+
+$H_1$ : Data stasioner dalam rataan
+
+Berdasarkan uji ADF tersebut, didapat *p-value* sebesar 0.03859 yang lebih kecil dari taraf nyata 5% sehingga tolak $H_0$ dan menandakan bahwa data stasioner dalam rataan. Hal ini sesuai dengan hasil eksplorasi menggunakan plot time series dan plot ACF.
+
+### Plot Box-Cox
+
+```{r}
+indeks <- seq(1:121)
+bc = boxcox(data1.ts~indeks, lambda = seq (-1, 2, by = 0.001))
+
+```
+
+```{r}
+lambda<- bc$x[which.max(bc$y)]
+lambda
+```
+
+```{r}
+bc$x[bc$y > max(bc$y) - 1/2 * qchisq(.95,1)]
+
+```
+
+Gambar di atas menunjukkan nilai *rounded value* ($\lambda$) optimum sebesar **0.284** dan pada selang kepercayaan 95% nilai memiliki batas bawah **0.224** dan batas atas **0.351**. Selang tersebut tidak memuat nilai satu sehingga dapat dikatakan bahwa data curah hujan bogor tidak stasioner dalam ragam.
+
+### SUMMARY Data Keseluruhan
+pada data keseluruhan $121$ periode dapat di identifikasi stasionernya dengan melakukan uji ACF dengan hasil Tail off lalu dilakukan uji stasioner bagi rataan Menggunakan uji ADF.hasil p-value $0.03859$ yang lebih kecil dari taraf nyata 5% sehingga tolak $H_0$ dan menandakan bahwa data stasioner dalam rataan. lalu dilakukan uji stasioner bagi ragam Menggunakan Box-Cox dengan hasil lambda $0.284$ dan pada selang kepercayaan 95% nilai memiliki batas bawah $0.224$ dan batas atas $0.351$.
+
+Dari seluruh uji dapat di identifikasi bahwa data keseluruhan 121 periode termasuk dalam model yang stasioner pada rata-ratanya akan tetapi tidak stasioner terhadap ragamnya
+
+### Partisi Data (Data Training dan Data Testing) dibagi data training 1-103 data uji 104-121
+
+#### Bagian 1 (Data Training)
+
+```{r}
+data_training <- data1[1:103,]
+data_training.ts <- ts(data_training$`Akumulasi Hujan`)
+data_test<-data1[104:121,]
+data_test.ts<-ts(data_test$`Akumulasi Hujan`)
+
+```
+
+
+```{r}
+
+mean(data_training.ts)
+var(data_training.ts)
+
+```
+
+
+#### Plot Time Series
+```{r}
+ts.plot(data_training.ts, xlab="Time Periode ", ylab="Akumulasi", 
+        main = "Time Series Plot")
+```
+#### Plot ACF
+
+```{r}
+acf(data_training.ts)
+```
+
+Berdasarkan plot ACF, terlihat bahwa plot ACF pada data tersebut cenderung *tails off* dan membentuk gelombang sinus.
+
+dari plot juga dapat dikatakan bahwa plot ACF cut off pada lag 7
+
+#### Uji ADF
+
+```{r}
+tseries::adf.test(data_training.ts)
+```
+
+$H_0$ : Data tidak stasioner dalam rataan
+
+$H_1$ : Data stasioner dalam rataan
+
+Berdasarkan uji ADF tersebut, didapat *p-value* sebesar 0.06066 yang lebih besar dari taraf nyata 5% sehingga tak tolak $H_0$ dan menandakan bahwa data tidak stasioner dalam rataan.
+
+#### Plot Boxcox
+
+```{r}
+index_2 <- seq(1:103)
+bc = boxcox(data_training.ts~index_2, lambda = seq(-1,2,by=0.001))
+#Nilai Rounded Lambda
+lambda <- bc$x[which.max(bc$y)]
+lambda
+#SK
+bc$x[bc$y > max(bc$y) - 1/2 * qchisq(.95,1)]
+```
+
+Gambar di atas menunjukkan nilai *rounded value* ($\lambda$) optimum sebesar **0.289** dan pada selang kepercayaan 95% nilai memiliki batas bawah **0.225   ** dan batas atas **0.361**. Selang tersebut tidak memuat nilai satu sehingga dapat dikatakan bahwa data curah hujan bogor tidak stasioner dalam ragam.
+
+
+### SUMMARY Data Training
+Pada data ini terdapat 103 periode, dapat di identifikasi stasionernya dengan melakukan uji ACF dengan hasil Tail off lalu dilakukan uji stasioner bagi rataan Menggunakan uji ADF.hasil p-value $0.06066$ yang lebih besar dari taraf nyata 5% sehingga tak tolak $H_0$ dan menandakan bahwa data tidak stasioner dalam rataan. lalu dilakukan uji stasioner bagi ragam Menggunakan Box-Cox dengan hasil lambda $0.289$ dan pada selang kepercayaan 95% nilai memiliki batas bawah $0.225$ dan batas atas $0.361$.
+
+Dari seluruh uji dapat di identifikasi bahwa data training 50 periode termasuk dalam model yang stasioner (dilihat dari ACF) akan tetapi tidak stasioner terhadap rataannya dan tidak stasioner pada ragam
+
+# Penanganan Ketidakstasioneran
+
+```{r}
+train.diff<-diff(data_training.ts, differences = 1)
+plot.ts(train.diff, xlab="Time Periode ", ylab="Akumulasi",
+        main = "Time Series Plot")
+```
+Berdasarkan plot data deret waktu, terlihat bahwa data sudah stasioner dalam rataan ditandai dengan data bergerak pada nilai tengah tertentu (tidak terdapat trend ataupun musiman pada data)
+
+```{r}
+acf(train.diff)
+```
+Bedasarakan plot di atas, terlihat bahwa plot ACF cuts off pada after lag 7. hal ini menandakan data sudah stasioner dalam rataan dan ketidakstasioneran telah teratasi
+
+```{r}
+tseries::adf.test(train.diff)
+```
+Hipotesis Uji ADF
+$H_0$ : Data tidak stasioner dalam rataan
+
+$H_1$ : Data stasioner dalam rataan
+
+Berdasarkan uji ADF tersebut, didapat *p-value* sebesar 0.01 yang lebih kecil dari taraf nyata 5% sehingga tolak $H_0$ dan menandakan bahwa data stasioner dalam rataan. Hal ini sesuai dengan hasil eksplorasi menggunakan plot time series dan plot ACF.
+
+```{r}
+pacf(train.diff)
+```
+Bedasarkan plot diatas, terlihat bahwa plot PACF tails off maka model tentatifnya dari model adalah ARIMA(1,1,7)
+```{r}
+eacf(train.diff)
+```
+Identifikasi model menggunakan plot EACF dilakukan dengan melihat ujung segitiga pada pola segitiga nol. Dalam hal ini model tentatif yang terbentuk adalah ARIMA(1,1,7), ARIMA(2,1,7), ARIMA(3,1,7), ARIMA(4,1,7)dan ARIMA (5,1,5)
+
+# Pemilihan Model Terbaik (model tentatif)
+
+```{r}
+model1.da<-  arima(train.diff, order = c(1,0,7))
+summary(model1.da)
+lmtest::coeftest(model1.da)
+
+```
+```{r}
+model2.da<-  arima(train.diff, order = c(2,0,7))
+summary(model2.da)
+lmtest::coeftest(model2.da)
+```
+
+```{r}
+model3.da<-  arima(train.diff, order = c(3,0,7))
+summary(model3.da)
+lmtest::coeftest(model3.da)
+```
+
+```{r}
+model4.da<-  arima(train.diff, order = c(4,0,7))
+summary(model4.da)
+lmtest::coeftest(model4.da)
+```
+
+
+
+```{r}
+model6.da<-  arima(train.diff, order = c(5,0,5))
+summary(model6.da)
+lmtest::coeftest(model6.da)
+```
+```{r}
+#bikin perbandingan nilai AIC dari model1-model6 dengan data frame
+Nilai_AIC<-data.frame(model1.da$aic,model2.da$aic,model3.da$aic,model4.da$aic,model6.da$aic)
+colnames(Nilai_AIC)<-c("Model1","Model2","Model3","Model4","Model6")
+rownames(Nilai_AIC)<-c("AIC")
+Nilai_AIC
+```
+Berdasarkan nilai AIC dari model 1-6, didapat nilai AIC terkecil pada model 6 yaitu  1127.205 Sehingga model terbaik adalah model ARIMA(5,1,5)
+
+# Kesimpulan 
+Ketika dilakukan penanganan stasioner rataan pada data training dengan melakukan differencing satu kali, didapat model ARIMA(5,1,5) sebagai model terbaik dengan nilai AIC terkecil sebesar 1127.205. Akan tetapi hasil dari Model ARIMA (5,1,5) tidak dapat dikatakan sebagai model yang valid karena nilai dari salah satu AR atau MA ada yang tidak signifikan. Hal ini dikarenakan Pola data yang cenderung memiliki sifat data musiman, mengingat bahwa ini adalah data curah hujan yang pastinya memiliki periode musim hujan tertentu sehingga yang baik adalah diperlukan analisis lebih lanjut dengan metode model SARIMA atau yang lainnya.
+
+
+# analisis sisaan dari model terbaik
+```{r}
+#eksplorasi model terbaik
+model6.da
+```
+
+```{r}
+sisaan<-model6.da$residuals
+par(mfrow=c(2,2),mar=c(4,4,2,1))
+qqnorm(sisaan)
+qqline(sisaan,col='red',lwd=2)
+plot(sisaan)
+plot(c(1:length(sisaan)),sisaan)
+acf(sisaan)
+pacf(sisaan)
+par(mfrow=c(1,1))
+```
+
+
+# Uji Formal (diagnostik model)
+```{r}
+#sisaan menyebar normal
+ks.test(sisaan, "pnorm")
+#tak tolak h0 maka sisaan menyebar normal
+```
+dar hasil ks test  tolak h0 pada taraf 5% yang artinya data tidak menyebar normal. hal ini karena p value < 0,05
+
+
+```{r}
+#sisaan tidak ada autokorelasi/saling bebas
+Box.test(sisaan, type="Ljung-Box")
+#tak tolak h0 maka sisaan saling bebas
+
+```
+dari hasil Box test tidak tolak h0 pada taraf 5% yang artinya data  saling bebas. hal ini karena p value> 0,05
+```{r}
+#sisaan homoskedastisitas
+Box.test((sisaan)^2, type="Ljung")
+#tak tolak h0 maka sisaan homoskedastisitas
+```
+dari hasil Box test tidak tolak h0 pada taraf 5% yang artinya data homoskedastisitas. hal ini karena p value> 0,05
+
+```{r}
+#sisaan tidak ada autokorelasi/saling bebas
+t.test(sisaan, mu=0, conf.level=0.95)
+#tak tolak h0 maka sisaan saling bebas
+```
+dar hasil t test tidak tolak h0 pada taraf 5% yang artinya data saling bebas. hal ini karena p value> 0,05
+
+# Kesimpulan diagnostik model
+dari semua hanya uji normalitas yang tidak memenuhi syarat, hal ini dikarenakan data yang tidak menyebar normal. sesuai dengan hasil plot yang tidak linear dengan garis rataannya. uji lainnya seperti uji autokorelasi, uji homoskedastisitas, dan uji saling bebas telah memenuhi syarat
+
+# Overfitting
+```{r}
+model6_A.da<-  arima(train.diff, order = c(5,0,5))
+summary(model6_A.da)
+lmtest::coeftest(model6_A.da)
+
+model6_B.da<-  arima(train.diff, order = c(5,0,6))
+summary(model6_B.da)
+lmtest::coeftest(model6_B.da)
+
+```
+
+```{r}
+#bikin perbandingan nilai AIC dari model6_A dan model6_B dengan data frame
+Nilai_AIC<-data.frame(model6_A.da$aic,model6_B.da$aic)
+colnames(Nilai_AIC)<-c("Model6_A","Model6_B")
+rownames(Nilai_AIC)<-c("AIC")
+Nilai_AIC
+```
+Berdasarkan nilai AIC dari model 6_A dan 6_B, didapat nilai AIC terkecil pada model 6_A yaitu  1127.205 Sehingga model terbaik adalah model ARIMA(5,1,5)
+# Forecasting
+forecasting akan dilakukan sesuai splitting data perminggu untuk meramal 7 data kedepan
+```{r}
+library(forecast)
+ramalan <- forecast::forecast(Arima(train.diff, order = c(5,0,5)), h = 7)
+ramalan
+```
+
+```{r}
+data.ramalan <- ramalan$mean
+plot(ramalan)
+```
+bedasarkan hasil forcasting di atas dapat dilihat bahwa ramalan arima(5,1,1) memiliki ramalan yang serupa dengan data asli
+
+
